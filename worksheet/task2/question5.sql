@@ -6,11 +6,18 @@ SELECT
 	Student.StudentId,
 	Student.FirstName,
 	Student.LastName,
-	COALESCE(SUM(Course.Credits), 0) AS TotalCreditsPassed
+	COALESCE(
+		SUM(
+			CASE
+				WHEN Enrolment.Grade >= 40 THEN Course.Credits
+				ELSE 0
+			END
+		),
+		0
+	) AS TotalCreditsPassed
 FROM Student
 LEFT JOIN Enrolment
 	ON Enrolment.StudentId = Student.StudentId
-	AND Enrolment.Grade >= 40
 LEFT JOIN Course
 	ON Course.CourseId = Enrolment.CourseId
 GROUP BY
