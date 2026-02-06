@@ -3,24 +3,25 @@
 -- StudentId, FirstName, LastName, TotalCreditsPassed
 
 SELECT
-	Student.StudentId,
-	Student.FirstName,
-	Student.LastName,
-	COALESCE(
-		SUM(
-			CASE
-				WHEN Enrolment.Grade >= 40 THEN Course.Credits
-				ELSE 0
-			END
-		),
-		0
-	) AS TotalCreditsPassed
-FROM Student
-LEFT JOIN Enrolment
-	ON Enrolment.StudentId = Student.StudentId
-LEFT JOIN Course
-	ON Course.CourseId = Enrolment.CourseId
+	s.StudentId,
+	s.FirstName,
+	s.LastName,
+	COALESCE(SUM(c.Credits), 0) AS TotalCreditsPassed
+FROM Student AS s
+LEFT JOIN (
+	SELECT
+		e.StudentId,
+		e.CourseId
+	FROM Enrolment AS e
+	GROUP BY
+		e.StudentId,
+		e.CourseId
+	HAVING MAX(e.Grade) >= 40
+) AS passed
+	ON passed.StudentId = s.StudentId
+LEFT JOIN Course AS c
+	ON c.CourseId = passed.CourseId
 GROUP BY
-	Student.StudentId,
-	Student.FirstName,
-	Student.LastName;
+	s.StudentId,
+	s.FirstName,
+	s.LastName;
